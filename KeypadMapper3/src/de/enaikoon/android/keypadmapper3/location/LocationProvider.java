@@ -21,7 +21,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
-import de.enaikoon.android.inviu.opencellidlibrary.CellIDCollectionService;
 import de.enaikoon.android.keypadmapper3.KeypadMapperApplication;
 import de.enaikoon.android.keypadmapper3.SatelliteInfoFragment;
 import de.enaikoon.android.keypadmapper3.utils.GPSDataValidator;
@@ -76,10 +75,6 @@ public class LocationProvider implements LocationListener, Listener, NmeaListene
 
     public void stopRequestingUpdates() {
         Log.d("Keypad", "stoprequesting updates");
-        CellIDCollectionService service = KeypadMapperApplication.getInstance().getCellIdService();
-        if (service != null) {
-            service.stopRequestingUpdates();
-        }
 
         locationManager.removeUpdates(this);
         locationManager.removeGpsStatusListener(this);
@@ -93,10 +88,7 @@ public class LocationProvider implements LocationListener, Listener, NmeaListene
     
     public void startRequestingUpdates() {
         Log.d("Keypad", "startrequesting updates");
-        CellIDCollectionService service = KeypadMapperApplication.getInstance().getCellIdService();
-        if (service != null) {
-            service.startRequestingUpdates();
-        }
+        
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         locationManager.addGpsStatusListener(this);
         locationManager.addNmeaListener(this);

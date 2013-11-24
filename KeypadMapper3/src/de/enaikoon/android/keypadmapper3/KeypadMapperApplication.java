@@ -14,24 +14,16 @@ import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.AudioRecord;
 import android.os.Build;
 import android.os.Environment;
-import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import de.enaikoon.android.inviu.opencellidlibrary.CellIDCollectionService;
-import de.enaikoon.android.inviu.opencellidlibrary.CellIDCollectionService.LocalBinder;
-import de.enaikoon.android.inviu.opencellidlibrary.Configurator;
-import de.enaikoon.android.inviu.opencellidlibrary.UploadService;
 import de.enaikoon.android.keypadmapper3.domain.Mapper;
 import de.enaikoon.android.keypadmapper3.location.LocationProvider;
 import de.enaikoon.android.keypadmapper3.settings.KeypadMapperSettings;
@@ -69,11 +61,7 @@ public class KeypadMapperApplication extends Application {
 
     private String screenToActivate = null;
     
-    private CellIDCollectionService cellIdService;
-    
     private String TAG = "KeypadMapper";
-    
-    private ServiceConnection cellidServiceConn;
     
     public FileFilter onlyFilesFilter = null;
     
@@ -181,41 +169,6 @@ public class KeypadMapperApplication extends Application {
             settings.setTurnOffUpdates(true);
         }
         
-        // starting cellid library 
-        Log.d(TAG, "Starting OpenCellID service");
-        Configurator.setPRODUCTION_VERSION(true); // show log
-        Configurator.setGpsTimeout(300*1000); // 300 seconds
-        Configurator.setAutomaticUpload(true);
-        Configurator.setMinSignalLevelDifference(2);
-        Configurator.setMinTimestampDifference(5000); // 5 seconds
-        Configurator.setMinDistance(5);
-
-        Configurator.setMaxLogSize(5);
-        Configurator.setMaxDatabaseSize(50);
-        
-        Configurator.setSDCARD_DIRECTORY_NAME(KeypadMapperApplication.getInstance()
-                .getKeypadMapperDirectory().getAbsolutePath()
-                + "/" + "opencellid/");
-        Intent startServiceIntent = new Intent(this, CellIDCollectionService.class);
-        startService(startServiceIntent);
-        
-        cellidServiceConn = new ServiceConnection () {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                LocalBinder localbinder = (LocalBinder) service;
-                cellIdService = localbinder.getService();
-            }
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                cellIdService = null;
-            } 
-        };
-
-        bindService(startServiceIntent, cellidServiceConn, Service.BIND_AUTO_CREATE);
-        
-        Intent uploadService = new Intent(this, UploadService.class);
-        startService(uploadService);
-        
         detectCompass();
         
         if (settings.isRecording()) {
@@ -264,10 +217,6 @@ public class KeypadMapperApplication extends Application {
     
     public boolean isGpsRecording () {
         return settings.isRecording();
-    }
-    
-    public CellIDCollectionService getCellIdService() {
-        return cellIdService;
     }
   
     public boolean isAnyDataAvailable() {
